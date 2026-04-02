@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useKeyboard, useTerminalDimensions } from "@opentui/react";
-import { SyntaxStyle } from "@opentui/core";
+import { SyntaxStyle, RGBA } from "@opentui/core";
 import type { MatterAPI, Item, Annotation } from "../api.js";
-import { theme } from "./theme.js";
+import { theme, statusColor } from "./theme.js";
 
 interface ItemCardProps {
   api: MatterAPI;
@@ -10,30 +10,85 @@ interface ItemCardProps {
   onNavigate: (view: unknown) => void;
 }
 
-const syntaxStyle = SyntaxStyle.create();
+const hex = RGBA.fromHex;
+const syntaxStyle = SyntaxStyle.fromStyles({
+  "markup.heading": { fg: hex(theme.accent), bold: true },
+  "markup.strong": { bold: true },
+  "markup.italic": { italic: true },
+  "markup.link.label": {},
+  "markup.link.url": { fg: hex(theme.fg.dim) },
+  "markup.link": { fg: hex(theme.fg.dim) },  // parens around URL
+  "markup.strikethrough": { dim: true },
+  "conceal": { fg: hex(theme.fg.ghost) },
+});
 
 // Matter's API returns markdown with backslash-escaped punctuation
-// (e.g. \-, \(, \), \., \!) which is valid markdown but renders
-// poorly in some parsers. Strip these escapes before display.
+// (e.g. \-, \(, \), \~, \!) which is valid markdown but renders
+// poorly in terminal. Strip these escapes before display.
 function prepMarkdown(md: string): string {
   return md
-    .replace(/\\([^\\\n])/g, "$1")  // unescape backslash-escaped chars
-    .replace(/\u200b/g, "");         // strip zero-width spaces
+    .replace(/\\([^\n])/g, "$1")    // unescape all backslash-escaped chars
+    .replace(/\u200b/g, "")         // strip zero-width spaces
+    .replace(/^(?:> ?)+(.*)$/gm, (_, text) => text ? `*${text}*` : "");  // pullquotes: render as italic
+}
+
+function NotebookPanel({ annotations }: { annotations: Annotation[] }) {
+  if (annotations.length === 0) {
+    return (
+      <box padding={1} flexDirection="column">
+        <text fg={theme.fg.dim}>No highlights yet.</text>
+      </box>
+    );
+  }
+
+  return (
+    <scrollbox flexGrow={1} focused>
+      <box padding={1} flexDirection="column">
+        <text fg={theme.fg.secondary}>
+          <b>{`Notebook (${annotations.length})`}</b>
+        </text>
+        <box height={1} />
+        {annotations.map((ann) => (
+          <box key={ann.id} flexDirection="column">
+            <box flexDirection="row">
+              <text fg={theme.accent}>{"│ "}</text>
+              <text fg={theme.fg.content}>{ann.text}</text>
+            </box>
+            {ann.note != null && ann.note !== "" ? (
+              <box flexDirection="row">
+                <text fg={theme.accent}>{"  "}</text>
+                <text fg={theme.fg.muted}><i>{ann.note}</i></text>
+              </box>
+            ) : null}
+            <box height={1} />
+          </box>
+        ))}
+      </box>
+    </scrollbox>
+  );
 }
 
 export function ItemCard({ api, itemId }: ItemCardProps) {
-  const { width } = useTerminalDimensions();
+  const { width, height } = useTerminalDimensions();
   const [item, setItem] = useState<Item | null>(null);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionIndex, setActionIndex] = useState(0);
+  const [notebookOpen, setNotebookOpen] = useState(false);
   const progressRef = useRef(0);
 
   const actions = [
-    { key: "q", label: "Queue", action: () => updateStatus("queue") },
-    { key: "a", label: "Archive", action: () => updateStatus("archive") },
-    { key: "f", label: "Fav", action: () => toggleFavorite() },
+    // Toggle: queued items show Archive, everything else shows Queue
+    item?.status === "queue"
+      ? { key: "a", label: "Archive", action: () => updateStatus("archive") }
+      : { key: "q", label: "Queue", action: () => updateStatus("queue") },
+    item?.is_favorite
+      ? { key: "f", label: "Unfav", action: () => toggleFavorite() }
+      : { key: "f", label: "Fav", action: () => toggleFavorite() },
+    ...(annotations.length > 0
+      ? [{ key: "n", label: notebookOpen ? "Close" : `Notebook (${annotations.length})`, action: () => setNotebookOpen((v) => !v) }]
+      : []),
     ...(item?.markdown ? [{ key: "o", label: "Open", action: () => openInApp() }] : []),
     ...(item?.url ? [{ key: "b", label: "Browser", action: () => openInBrowser() }] : []),
   ];
@@ -120,6 +175,7 @@ export function ItemCard({ api, itemId }: ItemCardProps) {
 
   const progress = Math.round(item.reading_progress * 100);
   const sidebarWidth = Math.min(30, Math.floor(width * 0.25));
+  const notebookHeight = notebookOpen ? Math.max(8, Math.floor(height * 0.35)) : 0;
 
   return (
     <box flexDirection="column" width="100%" height="100%">
@@ -128,7 +184,7 @@ export function ItemCard({ api, itemId }: ItemCardProps) {
         {actions.map((a, i) => (
           <text
             key={a.key}
-            fg={i === actionIndex ? theme.fg.primary : theme.fg.muted}
+            fg={i === actionIndex ? "#fff" : theme.fg.muted}
             bg={i === actionIndex ? theme.accent : undefined}
           >
             {` [${a.key}] ${a.label} `}
@@ -138,7 +194,6 @@ export function ItemCard({ api, itemId }: ItemCardProps) {
         <text fg={item.is_favorite ? theme.warning : theme.fg.ghost}>
           {item.is_favorite ? " * " : "   "}
         </text>
-        <text fg={theme.fg.muted}>{`${item.status} `}</text>
       </box>
 
       {/* Main content: sidebar + reader */}
@@ -156,6 +211,9 @@ export function ItemCard({ api, itemId }: ItemCardProps) {
           <box height={1} />
           {item.author != null ? <text fg={theme.fg.tertiary}>{item.author.name}</text> : null}
           {item.site_name != null && item.site_name !== "" ? <text fg={theme.fg.dim}>{item.site_name}</text> : null}
+          <box height={1} />
+          <text fg={theme.fg.faint}>Status</text>
+          <text fg={statusColor(item.status)}>{item.status}</text>
           <box height={1} />
           <text fg={theme.fg.faint}>Type</text>
           <text fg={theme.fg.secondary}>{item.content_type}</text>
@@ -178,27 +236,12 @@ export function ItemCard({ api, itemId }: ItemCardProps) {
               ))}
             </>
           ) : null}
-          {annotations.length > 0 ? (
-            <>
-              <box height={1} />
-              <text fg={theme.fg.faint}>{`Highlights (${annotations.length})`}</text>
-              {annotations.slice(0, 5).map((ann) => (
-                <box key={ann.id} flexDirection="column">
-                  <text fg={theme.warning}>{`"${ann.text.slice(0, 40)}"`}</text>
-                  {ann.note != null && ann.note !== "" ? <text fg={theme.fg.dim}>{`  ${ann.note.slice(0, 30)}`}</text> : null}
-                </box>
-              ))}
-              {annotations.length > 5 ? (
-                <text fg={theme.fg.faint}>{`+${annotations.length - 5} more`}</text>
-              ) : null}
-            </>
-          ) : null}
         </box>
 
         {/* Reader */}
         <box flexDirection="column" flexGrow={1} flexShrink={1}>
           {item.markdown ? (
-            <scrollbox flexGrow={1} focused>
+            <scrollbox flexGrow={1} focused={!notebookOpen}>
               <box padding={1} flexDirection="column">
                 <markdown
                   content={prepMarkdown(item.markdown)}
@@ -214,7 +257,7 @@ export function ItemCard({ api, itemId }: ItemCardProps) {
               <text fg={theme.fg.faint}>Check back in a moment.</text>
             </box>
           ) : item.excerpt != null && item.excerpt !== "" ? (
-            <scrollbox flexGrow={1} focused>
+            <scrollbox flexGrow={1} focused={!notebookOpen}>
               <box padding={1} flexDirection="column">
                 <text fg={theme.fg.secondary}>{item.excerpt}</text>
                 <box height={1} />
@@ -228,6 +271,18 @@ export function ItemCard({ api, itemId }: ItemCardProps) {
           )}
         </box>
       </box>
+
+      {/* Notebook panel (bottom) */}
+      {notebookOpen ? (
+        <box
+          flexDirection="column"
+          height={notebookHeight}
+          borderStyle="single"
+          borderColor={theme.border}
+        >
+          <NotebookPanel annotations={annotations} />
+        </box>
+      ) : null}
     </box>
   );
 }
