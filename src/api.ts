@@ -33,6 +33,8 @@ export interface Item {
   image_url: string | null;
   excerpt: string | null;
   markdown: string | null;
+  library_position: number | null;
+  inbox_position: number | null;
   tags: Tag[];
   saved_at: string;
   updated_at: string;
@@ -79,7 +81,7 @@ export interface ItemFilters {
   is_favorite?: boolean;
   tag?: string;
   content_type?: "article" | "podcast" | "video" | "pdf" | "tweet" | "newsletter";
-  order?: "updated" | "position";
+  order?: "updated" | "library_position" | "inbox_position";
   updated_since?: string;
   limit?: number;
   cursor?: string;

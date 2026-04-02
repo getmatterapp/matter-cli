@@ -24,7 +24,7 @@ export function ItemList({ api, status, onSelect }: ItemListProps) {
       try {
         const result = await api.listItems({
           status: status as any,
-          order: status ? "position" : undefined,
+          order: status === "inbox" ? "inbox_position" : status ? "library_position" : undefined,
           limit: 20,
           cursor: nextCursor,
         });
