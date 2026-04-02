@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - target: bun-darwin-arm64
+            outfile: matter-darwin-arm64
+          - target: bun-darwin-x64
+            outfile: matter-darwin-x64
+          - target: bun-linux-arm64
+            outfile: matter-linux-arm64
+          - target: bun-linux-x64
+            outfile: matter-linux-x64
+          - target: bun-windows-x64
+            outfile: matter-windows-x64.exe
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - run: bun build --compile --target=${{ matrix.target }} ./src/cli.tsx --outfile ./dist/${{ matrix.outfile }} --minify
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.outfile }}
+          path: ./dist/${{ matrix.outfile }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Create checksums
+        run: |
+          cd artifacts
+          sha256sum */matter-* > checksums.txt
+          cat checksums.txt
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/*/matter-*
+            artifacts/checksums.txt
+          generate_release_notes: true
