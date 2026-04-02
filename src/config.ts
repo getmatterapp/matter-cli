@@ -6,6 +6,7 @@ export interface Config {
   access_token?: string;
   auth_type?: "token";
   readonly: boolean;
+  color_mode?: "dark" | "light" | "system";
   last_update_check?: string;
   version?: string;
 }

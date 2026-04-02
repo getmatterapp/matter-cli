@@ -2,11 +2,23 @@ import { useState } from "react";
 import { useKeyboard } from "@opentui/react";
 import { loadConfig, saveConfig } from "../config.js";
 import { VERSION } from "../version.js";
+import { theme, getColorMode, setColorMode, applyColorMode, type ColorMode } from "./theme.js";
 
 export function Settings() {
   const [config, setConfig] = useState(loadConfig);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
+
+  const [colorMode, setColorModeState] = useState<ColorMode>(getColorMode);
+
+  const cycleColorMode = () => {
+    const modes: ColorMode[] = ["system", "dark", "light"];
+    const next = modes[(modes.indexOf(colorMode) + 1) % modes.length];
+    setColorMode(next);
+    applyColorMode(next);
+    setColorModeState(next);
+    setMessage(`Color mode: ${next}`);
+  };
 
   const items = [
     {
@@ -18,6 +30,11 @@ export function Settings() {
         setConfig(updated);
         setMessage(`Readonly mode ${updated.readonly ? "enabled" : "disabled"}`);
       },
+    },
+    {
+      label: "Color Mode",
+      value: colorMode,
+      toggle: cycleColorMode,
     },
     {
       label: "Auth Token",
@@ -43,7 +60,7 @@ export function Settings() {
 
   return (
     <box flexDirection="column" padding={1}>
-      <text fg="#7b68ee">
+      <text fg={theme.accent}>
         <b>Settings</b>
       </text>
       <box height={1} />
@@ -51,20 +68,20 @@ export function Settings() {
         const isSelected = i === selectedIndex;
         return (
           <box key={item.label} flexDirection="row">
-            <text fg={isSelected ? "#7b68ee" : "#444"}>
+            <text fg={isSelected ? theme.accent : theme.fg.ghost}>
               {isSelected ? " > " : "   "}
             </text>
-            <text fg={isSelected ? "#fff" : "#aaa"}>
+            <text fg={isSelected ? theme.fg.primary : theme.fg.tertiary}>
               {item.label.padEnd(20)}
             </text>
-            <text fg="#4ecdc4">{item.value}</text>
+            <text fg={theme.success}>{item.value}</text>
           </box>
         );
       })}
       {message != null ? (
         <box flexDirection="column">
           <box height={1} />
-          <text fg="#4ecdc4">{message}</text>
+          <text fg={theme.success}>{message}</text>
         </box>
       ) : null}
     </box>

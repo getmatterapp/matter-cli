@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useKeyboard } from "@opentui/react";
 import type { MatterAPI, Item } from "../api.js";
+import { theme, statusColor } from "./theme.js";
 
 interface ItemListProps {
   api: MatterAPI;
@@ -71,14 +72,14 @@ export function ItemList({ api, status, onSelect }: ItemListProps) {
   if (error) {
     return (
       <box flexDirection="column" padding={1}>
-        <text fg="#ff4444">Error: {error}</text>
+        <text fg={theme.error}>Error: {error}</text>
       </box>
     );
   }
 
   return (
     <box flexDirection="column" padding={1}>
-      <text fg="#7b68ee">
+      <text fg={theme.accent}>
         <b>{title}</b>
       </text>
       <box height={1} />
@@ -90,27 +91,27 @@ export function ItemList({ api, status, onSelect }: ItemListProps) {
 
         return (
           <box key={item.id} flexDirection="row">
-            <text fg={isSelected ? "#7b68ee" : "#444"}>
+            <text fg={isSelected ? theme.accent : theme.fg.ghost}>
               {isSelected ? " > " : "   "}
             </text>
-            <text fg={isSelected ? "#fff" : "#ccc"} bg={isSelected ? "#2a2a4e" : undefined}>
+            <text fg={isSelected ? theme.fg.primary : theme.fg.secondary} bg={isSelected ? theme.bg.selected : undefined}>
               {item.title.slice(0, 40).padEnd(42)}
             </text>
-            <text fg="#666">
+            <text fg={theme.fg.dim}>
               {site.slice(0, 18).padEnd(20)}
             </text>
-            <text fg={item.status === "queue" ? "#4ecdc4" : item.status === "inbox" ? "#ffd93d" : "#888"}>
+            <text fg={statusColor(item.status)}>
               {item.status.padEnd(9)}
             </text>
-            <text fg="#888">{String(progress).padStart(3)}%{fav}</text>
+            <text fg={theme.fg.muted}>{String(progress).padStart(3)}%{fav}</text>
           </box>
         );
       })}
-      {loading && <text fg="#888">Loading...</text>}
-      {!loading && items.length === 0 && <text fg="#666">No items found</text>}
+      {loading && <text fg={theme.fg.muted}>Loading...</text>}
+      {!loading && items.length === 0 && <text fg={theme.fg.dim}>No items found</text>}
       {hasMore && !loading && (
         <box height={1}>
-          <text fg="#555">Scroll down for more...</text>
+          <text fg={theme.fg.faint}>Scroll down for more...</text>
         </box>
       )}
     </box>

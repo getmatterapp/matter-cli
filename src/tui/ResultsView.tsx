@@ -1,3 +1,5 @@
+import { theme } from "./theme.js";
+
 interface ResultsViewProps {
   title: string;
   data: unknown;
@@ -9,12 +11,12 @@ export function ResultsView({ title, data }: ResultsViewProps) {
 
   return (
     <box flexDirection="column" padding={1}>
-      <text fg="#7b68ee">
+      <text fg={theme.accent}>
         <b>{title}</b>
       </text>
       <box height={1} />
       {lines.map((line, i) => (
-        <text key={i} fg="#ccc">
+        <text key={i} fg={theme.fg.secondary}>
           {line}
         </text>
       ))}

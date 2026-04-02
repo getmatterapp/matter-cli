@@ -8,6 +8,7 @@ import { useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/react"
 import { MatterAPI } from "../api.js";
 import { loadConfig } from "../config.js";
 import { VERSION } from "../version.js";
+import { theme } from "./theme.js";
 import { CommandPalette } from "./CommandPalette.js";
 import { ItemList } from "./ItemList.js";
 import { ItemCard } from "./ItemCard.js";
@@ -64,11 +65,11 @@ function App() {
       flexDirection="row"
       height={1}
       width="100%"
-      backgroundColor="#1a1a2e"
+      backgroundColor={theme.bg.bar}
     >
-      <text fg="#7b68ee"> matter v{VERSION} </text>
+      <text fg={theme.accent}> matter v{VERSION} </text>
       <box flexGrow={1} />
-      <text fg="#666">
+      <text fg={theme.fg.dim}>
         {view.name === "palette" ? "q:quit" : "esc:back"} | /:search | enter:select
       </text>
     </box>

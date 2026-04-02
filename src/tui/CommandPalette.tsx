@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useKeyboard } from "@opentui/react";
+import { theme } from "./theme.js";
 
 interface Command {
   id: string;
@@ -55,14 +56,14 @@ export function CommandPalette({ onSelect }: CommandPaletteProps) {
 
   return (
     <box flexDirection="column" padding={1}>
-      <text fg="#7b68ee">
+      <text fg={theme.accent}>
         <b>Command Palette</b>
       </text>
       <box height={1} />
       <box flexDirection="row">
-        <text fg="#888">/ </text>
-        <text fg="#fff">{filter || " "}</text>
-        <text fg="#444">_</text>
+        <text fg={theme.fg.muted}>/ </text>
+        <text fg={theme.fg.primary}>{filter || " "}</text>
+        <text fg={theme.fg.ghost}>_</text>
       </box>
       <box height={1} />
       {filtered.map((cmd, i) => {
@@ -73,15 +74,15 @@ export function CommandPalette({ onSelect }: CommandPaletteProps) {
         return (
           <box key={cmd.id} flexDirection="column">
             {showGroup && (
-              <text fg="#555">{cmd.group}</text>
+              <text fg={theme.fg.faint}>{cmd.group}</text>
             )}
             <box flexDirection="row">
-              <text fg={isSelected ? "#7b68ee" : "#444"}>
+              <text fg={isSelected ? theme.accent : theme.fg.ghost}>
                 {isSelected ? " > " : "   "}
               </text>
               <text
-                fg={isSelected ? "#fff" : "#aaa"}
-                bg={isSelected ? "#2a2a4e" : undefined}
+                fg={isSelected ? theme.fg.primary : theme.fg.tertiary}
+                bg={isSelected ? theme.bg.selected : undefined}
               >
                 {cmd.label}
               </text>
@@ -90,7 +91,7 @@ export function CommandPalette({ onSelect }: CommandPaletteProps) {
         );
       })}
       {filtered.length === 0 && (
-        <text fg="#666">No matching commands</text>
+        <text fg={theme.fg.dim}>No matching commands</text>
       )}
     </box>
   );
