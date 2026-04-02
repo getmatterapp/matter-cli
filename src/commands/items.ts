@@ -18,7 +18,7 @@ itemsCommand
   .option("--tag <tag_id>", "Filter by tag ID")
   .option("--content-type <type>", "Filter by content type")
   .option("--favorite", "Only favorites")
-  .option("--order <order>", "Sort order (updated|position). position uses app ordering and requires a single --status")
+  .option("--order <order>", "Sort order (updated|library_position|inbox_position). Position orderings use app ordering, nulls last")
   .option("--updated-since <date>", "Filter by updated date (ISO 8601)")
   .option("--limit <n>", "Max results per page")
   .option("--cursor <cursor>", "Pagination cursor")
