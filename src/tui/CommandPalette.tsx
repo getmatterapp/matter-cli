@@ -10,8 +10,8 @@ interface Command {
 
 const COMMANDS: Command[] = [
   { id: "search", label: "Search", group: "Search" },
-  { id: "items-inbox", label: "Browse Inbox", group: "Items" },
   { id: "items-queue", label: "Browse Queue", group: "Items" },
+  { id: "items-inbox", label: "Browse Inbox", group: "Items" },
   { id: "items-archive", label: "Browse Archive", group: "Items" },
   { id: "items-all", label: "Browse All Items", group: "Items" },
   { id: "settings", label: "Settings", group: "CLI" },

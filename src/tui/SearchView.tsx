@@ -102,6 +102,12 @@ export function SearchView({ api, onSelect, onBack }: SearchViewProps) {
     if (focus === "results") {
       switch (event.name) {
         case "up":
+          if (selectedIndex === 0) {
+            setFocus("input");
+            return;
+          }
+          moveSelection(-1);
+          return;
         case "k":
           moveSelection(-1);
           return;
@@ -135,10 +141,9 @@ export function SearchView({ api, onSelect, onBack }: SearchViewProps) {
         setQuery((q) => q.slice(0, -1));
         return;
       case "up":
-        moveSelection(-1);
         return;
       case "down":
-        moveSelection(1);
+        if (items.length > 0) setFocus("results");
         return;
     }
     if (event.raw && event.raw.length === 1 && event.raw >= " ") {
