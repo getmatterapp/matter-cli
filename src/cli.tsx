@@ -16,7 +16,16 @@ const program = new Command()
   .name("matter")
   .description("CLI for the Matter reading app")
   .version(VERSION, "-v, --version")
-  .addHelpText("after", "\nFor AI agents: run 'matter docs' for full reference docs and intent-to-command mappings.");
+  .addHelpText("after", `
+Common intents:
+  reading list / queue          items list --status queue --order library_position
+  inbox feed                    items list --status inbox --order inbox_position
+  read / summarize article      items get <id> --include markdown
+  find article about <topic>    search "<topic>" --type items
+  highlights from an article    annotations list --item <id> --all
+  all tags                      tags list
+
+Run 'matter docs' for full API reference.`);
 
 program.addCommand(loginCommand);
 program.addCommand(loginWithTokenCommand);

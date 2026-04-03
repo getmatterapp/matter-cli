@@ -29,8 +29,7 @@ itemsCommand
 Note: --order updated is for sync, NOT for user-facing queries. It tracks any modification.
   For reading list / queue:   --status queue --order library_position
   For inbox feed:             --status inbox --order inbox_position
-  For finished articles:      --status archive --order library_position
-Run 'matter docs' for full reference and intent-to-command mappings.`)
+  For finished articles:      --status archive --order library_position`)
   .action(async (opts) => {
     const api = new MatterAPI(requireToken());
     try {
@@ -84,11 +83,12 @@ Run 'matter docs' for full reference and intent-to-command mappings.`)
 itemsCommand
   .command("get <id>")
   .description("Get a single item")
+  .option("--include <fields>", "Comma-separated extra fields to include (e.g. markdown)")
   .option("--plain", "Human-readable output")
   .action(async (id, opts) => {
     const api = new MatterAPI(requireToken());
     try {
-      const item = await api.getItem(id);
+      const item = await api.getItem(id, opts.include);
       if (opts.plain) {
         console.log(`Title:    ${item.title}`);
         console.log(`URL:      ${item.url}`);

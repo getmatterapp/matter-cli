@@ -9,17 +9,14 @@ All commands output JSON by default. Add --plain for human-readable text.
 IDs are prefixed strings: itm_ (items), ann_ (annotations), tag_ (tags), aut_ (authors).
 API tokens start with mat_. Run 'matter login' to authenticate.
 
-## Important: Sort Order
+## Sort Order
 
-When a user is asking about their library, use library_position or inbox_position —
-these match what they see in the app. The default sort (--order updated) is for
-building incremental sync, NOT for answering user questions about their reading list.
-It bumps on any field change (tags, annotations, re-extraction), not just reading.
+--order updated is for sync, NOT user-facing queries. It tracks any field change.
 
 Sort values for 'matter items list --order':
-  library_position - App queue/archive order (manual drag-and-drop). Use this for most user queries.
+  library_position - App queue/archive order (manual drag-and-drop). Use for most user queries.
   inbox_position   - Inbox feed order (pinned sources first, then by date). Use for inbox queries.
-  updated          - Last-modified timestamp (any field change). Use for sync operations only.
+  updated          - Last-modified timestamp (any field change). Use for sync only.
 
 ## Common Intents
 
@@ -35,7 +32,9 @@ When a user asks...                         Use this command
 "find article about <topic>"                matter search "<topic>" --type items
 "articles by <author>"                      matter search "by:<author>" --type items
 "articles from <site>"                      matter search "site:<domain>" --type items
-"highlights from an article"                matter annotations list --item <item_id> --all
+"read/summarize an article"                 matter items get <id> --include markdown
+"get article content/text"                  matter items get <id> --include markdown
+"highlights from an article"                matter annotations list --item <id> --all
 "all my tags"                               matter tags list
 
 ## Full API & CLI Reference
