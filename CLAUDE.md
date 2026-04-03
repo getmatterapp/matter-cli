@@ -38,11 +38,18 @@ bun run build        # Cross-compile binaries for all platforms
 
 Runtime: `commander`, `@opentui/core`, `@opentui/react`, `react`, `open`. Nothing else.
 
+## Agent-Friendly Docs
+
+`matter docs` outputs a preamble with critical agent guidance (sort order gotcha, intent-to-command
+mappings) followed by an index of all docs pages with `.md` URLs from the docs site. Agents can
+fetch individual pages for deeper detail. `matter docs --offline` outputs just the preamble.
+
 ## API
 
 Base URL: `https://api.getmatter.com/public/v1/`
 Auth: Bearer token in `Authorization` header.
 Full docs: https://matter-d988c870.mintlify.app/api-reference/introduction
+LLM-optimized docs: https://matter-d988c870.mintlify.app/llms-full.txt
 
 ## TUI
 

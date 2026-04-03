@@ -10,11 +10,13 @@ import { annotationsCommand } from "./commands/annotations.js";
 import { tagsCommand } from "./commands/tags.js";
 import { updateCommand } from "./commands/update.js";
 import { searchCommand } from "./commands/search.js";
+import { docsCommand } from "./commands/docs.js";
 
 const program = new Command()
   .name("matter")
   .description("CLI for the Matter reading app")
-  .version(VERSION, "-v, --version");
+  .version(VERSION, "-v, --version")
+  .addHelpText("after", "\nFor AI agents: run 'matter docs' for full reference docs and intent-to-command mappings.");
 
 program.addCommand(loginCommand);
 program.addCommand(loginWithTokenCommand);
@@ -23,6 +25,7 @@ program.addCommand(itemsCommand);
 program.addCommand(annotationsCommand);
 program.addCommand(tagsCommand);
 program.addCommand(searchCommand);
+program.addCommand(docsCommand);
 program.addCommand(updateCommand);
 
 const args = process.argv.slice(2);

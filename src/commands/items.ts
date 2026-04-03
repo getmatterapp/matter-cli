@@ -15,16 +15,22 @@ export const itemsCommand = new Command("items").description("Manage items");
 itemsCommand
   .command("list")
   .description("List items")
-  .option("--status <status>", "Filter by status (inbox|queue|archive|all)")
+  .option("--status <status>", "Filter by status: inbox, queue (reading list), archive (finished reading), all")
   .option("--tag <tag_id>", "Filter by tag ID")
-  .option("--content-type <type>", "Filter by content type")
+  .option("--content-type <type>", "Filter by content type: article, podcast, video, pdf, tweet, newsletter")
   .option("--favorite", "Only favorites")
-  .option("--order <order>", "Sort order (updated|library_position|inbox_position). Position orderings use app ordering, nulls last")
+  .option("--order <order>", "Sort order: updated (last modified — any field change, default), library_position (app queue/archive order, manual drag-and-drop), inbox_position (inbox feed order, pinned sources first then by date)")
   .option("--updated-since <date>", "Filter by updated date (ISO 8601)")
   .option("--limit <n>", "Max results per page")
   .option("--cursor <cursor>", "Pagination cursor")
   .option("--all", "Fetch all pages")
   .option("--plain", "Human-readable output")
+  .addHelpText("after", `
+Note: --order updated is for sync, NOT for user-facing queries. It tracks any modification.
+  For reading list / queue:   --status queue --order library_position
+  For inbox feed:             --status inbox --order inbox_position
+  For finished articles:      --status archive --order library_position
+Run 'matter docs' for full reference and intent-to-command mappings.`)
   .action(async (opts) => {
     const api = new MatterAPI(requireToken());
     try {
