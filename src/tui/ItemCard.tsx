@@ -83,7 +83,9 @@ export function ItemCard({ api, itemId }: ItemCardProps) {
     ...(item?.status !== "queue"
       ? [{ key: "s", label: "Save", action: () => updateStatus("queue") }]
       : []),
-    { key: "e", label: "Archive", action: () => updateStatus("archive") },
+    ...(item?.status !== "archive"
+      ? [{ key: "e", label: "Archive", action: () => updateStatus("archive") }]
+      : []),
     item?.is_favorite
       ? { key: "f", label: "Unfav", action: () => toggleFavorite() }
       : { key: "f", label: "Fav", action: () => toggleFavorite() },
@@ -117,7 +119,7 @@ export function ItemCard({ api, itemId }: ItemCardProps) {
     if (!item) return;
     try {
       const updated = await api.updateItem(item.id, { status });
-      setItem(updated);
+      setItem({ ...updated, markdown: updated.markdown ?? item.markdown });
     } catch (err) {
       setError((err as Error).message);
     }
@@ -127,7 +129,7 @@ export function ItemCard({ api, itemId }: ItemCardProps) {
     if (!item) return;
     try {
       const updated = await api.updateItem(item.id, { is_favorite: !item.is_favorite });
-      setItem(updated);
+      setItem({ ...updated, markdown: updated.markdown ?? item.markdown });
     } catch (err) {
       setError((err as Error).message);
     }
