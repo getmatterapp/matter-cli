@@ -52,16 +52,17 @@ function App() {
     });
   }, [renderer]);
 
+  const [colorMode, setColorModeState] = useState<ColorMode>(getColorMode);
   const cycleColorMode = useCallback(() => {
     const modes: ColorMode[] = ["system", "dark", "light"];
-    const current = getColorMode();
-    const next = modes[(modes.indexOf(current) + 1) % modes.length];
+    const next = modes[(modes.indexOf(colorMode) + 1) % modes.length];
     setColorMode(next);
     applyColorMode(next);
-  }, []);
+    setColorModeState(next);
+  }, [colorMode]);
 
   useKeyboard((event) => {
-    if (event.name === "q" && view.name === "palette") {
+    if (event.name === "q") {
       renderer.destroy();
     } else if (event.name === "escape") {
       goBack();
@@ -80,7 +81,7 @@ function App() {
       <text fg={theme.accent}> matter v{VERSION} </text>
       <box flexGrow={1} />
       <text fg={theme.fg.dim}>
-        {view.name === "palette" ? "q:quit" : "esc:back"} | j/k:nav | d:theme | enter:select
+        q:quit{view.name !== "palette" ? " | esc:back" : ""} | j/k:nav | d:{colorMode} theme | enter:select
       </text>
     </box>
   );

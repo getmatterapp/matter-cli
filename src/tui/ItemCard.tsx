@@ -11,16 +11,19 @@ interface ItemCardProps {
 }
 
 const hex = RGBA.fromHex;
-const syntaxStyle = SyntaxStyle.fromStyles({
-  "markup.heading": { fg: hex(theme.accent), bold: true },
-  "markup.strong": { bold: true },
-  "markup.italic": { italic: true },
-  "markup.link.label": {},
-  "markup.link.url": { fg: hex(theme.fg.dim) },
-  "markup.link": { fg: hex(theme.fg.dim) },  // parens around URL
-  "markup.strikethrough": { dim: true },
-  "conceal": { fg: hex(theme.fg.ghost) },
-});
+
+function buildSyntaxStyle() {
+  return SyntaxStyle.fromStyles({
+    "markup.heading": { fg: hex(theme.accent), bold: true },
+    "markup.strong": { bold: true },
+    "markup.italic": { italic: true },
+    "markup.link.label": {},
+    "markup.link.url": { fg: hex(theme.fg.dim) },
+    "markup.link": { fg: hex(theme.fg.dim) },  // parens around URL
+    "markup.strikethrough": { dim: true },
+    "conceal": { fg: hex(theme.fg.ghost) },
+  });
+}
 
 // Matter's API returns markdown with backslash-escaped punctuation
 // (e.g. \-, \(, \), \~, \!) which is valid markdown but renders
@@ -89,9 +92,7 @@ export function ItemCard({ api, itemId }: ItemCardProps) {
     item?.is_favorite
       ? { key: "f", label: "Unfav", action: () => toggleFavorite() }
       : { key: "f", label: "Fav", action: () => toggleFavorite() },
-    ...(annotations.length > 0
-      ? [{ key: "n", label: notebookOpen ? "Close" : `Notebook (${annotations.length})`, action: () => setNotebookOpen((v) => !v) }]
-      : []),
+    { key: "n", label: notebookOpen ? "Close" : annotations.length > 0 ? `Notebook (${annotations.length})` : "Notebook", action: () => setNotebookOpen((v) => !v) },
     ...(item?.markdown ? [{ key: "w", label: "Web", action: () => openInApp() }] : []),
     ...(item?.url ? [{ key: "b", label: "Browser", action: () => openInBrowser() }] : []),
   ];
@@ -248,7 +249,7 @@ export function ItemCard({ api, itemId }: ItemCardProps) {
               <box padding={1} flexDirection="column">
                 <markdown
                   content={prepMarkdown(item.markdown)}
-                  syntaxStyle={syntaxStyle}
+                  syntaxStyle={buildSyntaxStyle()}
                   conceal
                   fg={theme.fg.content}
                 />
@@ -264,12 +265,12 @@ export function ItemCard({ api, itemId }: ItemCardProps) {
               <box padding={1} flexDirection="column">
                 <text fg={theme.fg.secondary}>{item.excerpt}</text>
                 <box height={1} />
-                <text fg={theme.fg.faint}>Full content not available. Press [o] to open in browser.</text>
+                <text fg={theme.fg.faint}>Full content not available. Press [b] to open in browser.</text>
               </box>
             </scrollbox>
           ) : (
             <box padding={1} flexDirection="column">
-              <text fg={theme.fg.faint}>No content available. Press [o] to open in browser.</text>
+              <text fg={theme.fg.faint}>No content available. Press [b] to open in browser.</text>
             </box>
           )}
         </box>
