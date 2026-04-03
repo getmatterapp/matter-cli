@@ -131,8 +131,8 @@ export function ItemList({ api, status, onSelect, onItemUpdated }: ItemListProps
             <text fg={theme.fg.dim}>
               {site.slice(0, 18).padEnd(20)}
             </text>
-            <text fg={statusColor(item.status)}>
-              {item.status.padEnd(9)}
+            <text fg={statusColor(item.status ?? "")}>
+              {(item.status ?? "—").padEnd(9)}
             </text>
             <text fg={theme.fg.muted}>{String(progress).padStart(3)}%{fav}</text>
           </box>

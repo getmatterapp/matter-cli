@@ -6,7 +6,8 @@ function formatItemRow(item: Item): string {
   const progress = Math.round(item.reading_progress * 100);
   const site = item.site_name || (() => { try { return new URL(item.url).hostname; } catch { return ""; } })();
   const fav = item.is_favorite ? " ★" : "";
-  return `${item.id.padEnd(12)}  ${item.title.slice(0, 40).padEnd(40)}  ${site.slice(0, 20).padEnd(20)}  ${item.status.padEnd(8)}  ${String(progress).padStart(3)}%${fav}`;
+  const status = item.status ?? "—";
+  return `${item.id.padEnd(12)}  ${item.title.slice(0, 40).padEnd(40)}  ${site.slice(0, 20).padEnd(20)}  ${status.padEnd(8)}  ${String(progress).padStart(3)}%${fav}`;
 }
 
 export const itemsCommand = new Command("items").description("Manage items");

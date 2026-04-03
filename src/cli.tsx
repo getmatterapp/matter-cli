@@ -9,6 +9,7 @@ import { itemsCommand } from "./commands/items.js";
 import { annotationsCommand } from "./commands/annotations.js";
 import { tagsCommand } from "./commands/tags.js";
 import { updateCommand } from "./commands/update.js";
+import { searchCommand } from "./commands/search.js";
 
 const program = new Command()
   .name("matter")
@@ -21,6 +22,7 @@ program.addCommand(accountCommand);
 program.addCommand(itemsCommand);
 program.addCommand(annotationsCommand);
 program.addCommand(tagsCommand);
+program.addCommand(searchCommand);
 program.addCommand(updateCommand);
 
 const args = process.argv.slice(2);

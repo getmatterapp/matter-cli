@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useKeyboard } from "@opentui/react";
 import { theme } from "./theme.js";
 
@@ -9,6 +9,7 @@ interface Command {
 }
 
 const COMMANDS: Command[] = [
+  { id: "search", label: "Search", group: "Search" },
   { id: "items-inbox", label: "Browse Inbox", group: "Items" },
   { id: "items-queue", label: "Browse Queue", group: "Items" },
   { id: "items-archive", label: "Browse Archive", group: "Items" },
@@ -16,83 +17,58 @@ const COMMANDS: Command[] = [
   { id: "settings", label: "Settings", group: "CLI" },
 ];
 
+
 interface CommandPaletteProps {
   onSelect: (commandId: string) => void;
 }
 
 export function CommandPalette({ onSelect }: CommandPaletteProps) {
-  const [filter, setFilter] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const filtered = useMemo(() => {
-    if (!filter) return COMMANDS;
-    const lower = filter.toLowerCase();
-    return COMMANDS.filter(
-      (c) =>
-        c.label.toLowerCase().includes(lower) ||
-        c.group.toLowerCase().includes(lower),
-    );
-  }, [filter]);
-
   useKeyboard((event) => {
-    if (event.name === "up") {
+    if (event.name === "up" || event.name === "k") {
       setSelectedIndex((i) => Math.max(0, i - 1));
-    } else if (event.name === "down") {
-      setSelectedIndex((i) => Math.min(filtered.length - 1, i + 1));
+    } else if (event.name === "down" || event.name === "j") {
+      setSelectedIndex((i) => Math.min(COMMANDS.length - 1, i + 1));
     } else if (event.name === "return") {
-      if (filtered[selectedIndex]) {
-        onSelect(filtered[selectedIndex].id);
-      }
-    } else if (event.name === "backspace") {
-      setFilter((f) => f.slice(0, -1));
-      setSelectedIndex(0);
-    } else if (event.raw && event.raw.length === 1 && event.raw >= " ") {
-      setFilter((f) => f + event.raw);
-      setSelectedIndex(0);
+      onSelect(COMMANDS[selectedIndex].id);
+    } else if (event.raw === "/") {
+      onSelect("search");
     }
   });
 
   let currentGroup = "";
 
   return (
-    <box flexDirection="column" padding={1}>
-      <text fg={theme.accent}>
-        <b>Command Palette</b>
-      </text>
-      <box height={1} />
-      <box flexDirection="row">
-        <text fg={theme.fg.muted}>/ </text>
-        <text fg={theme.fg.primary}>{filter || " "}</text>
-        <text fg={theme.fg.ghost}>_</text>
-      </box>
-      <box height={1} />
-      {filtered.map((cmd, i) => {
-        const showGroup = cmd.group !== currentGroup;
-        currentGroup = cmd.group;
-        const isSelected = i === selectedIndex;
+    <box flexDirection="column" flexGrow={1} justifyContent="center" alignItems="center">
+      <box flexDirection="column">
+        <ascii-font text="matter" font="block" color={theme.fg.primary} />
+        <text fg={theme.fg.dim}><i>Words are my matter.</i> —Ursula K. Le Guin</text>
+        <box height={1} />
+        {COMMANDS.map((cmd, i) => {
+          const showGroup = cmd.group !== currentGroup;
+          currentGroup = cmd.group;
+          const isSelected = i === selectedIndex;
 
-        return (
-          <box key={cmd.id} flexDirection="column">
-            {showGroup && (
-              <text fg={theme.fg.faint}>{cmd.group}</text>
-            )}
-            <box flexDirection="row">
-              <text fg={isSelected ? theme.accent : theme.fg.ghost}>
-                {isSelected ? " > " : "   "}
-              </text>
-              <text
-                fg={isSelected ? theme.fg.primary : theme.fg.tertiary}
-                bg={isSelected ? theme.bg.selected : undefined}
-              >
-                {cmd.label}
-              </text>
+          return (
+            <box key={cmd.id} flexDirection="column">
+              {showGroup && i > 0 && <box height={1} />}
+              {showGroup && <text fg={theme.fg.faint}>{cmd.group}</text>}
+              <box flexDirection="row">
+                <text fg={isSelected ? theme.accent : theme.fg.ghost}>
+                  {isSelected ? " > " : "   "}
+                </text>
+                <text
+                  fg={isSelected ? theme.fg.primary : theme.fg.tertiary}
+                  bg={isSelected ? theme.bg.selected : undefined}
+                >
+                  {cmd.label}
+                </text>
+              </box>
             </box>
-          </box>
-        );
-      })}
-      {filtered.length === 0 && (
-        <text fg={theme.fg.dim}>No matching commands</text>
-      )}
+          );
+        })}
+      </box>
     </box>
   );
 }

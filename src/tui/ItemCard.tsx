@@ -217,7 +217,7 @@ export function ItemCard({ api, itemId }: ItemCardProps) {
           {item.site_name != null && item.site_name !== "" ? <text fg={theme.fg.dim}>{item.site_name}</text> : null}
           <box height={1} />
           <text fg={theme.fg.faint}>Status</text>
-          <text fg={statusColor(item.status)}>{item.status}</text>
+          <text fg={statusColor(item.status ?? "")}>{item.status ?? "—"}</text>
           <box height={1} />
           <text fg={theme.fg.faint}>Type</text>
           <text fg={theme.fg.secondary}>{item.content_type}</text>
