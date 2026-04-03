@@ -49,9 +49,9 @@ export function Settings() {
   ];
 
   useKeyboard((event) => {
-    if (event.name === "up") {
+    if (event.name === "up" || event.name === "k") {
       setSelectedIndex((i) => Math.max(0, i - 1));
-    } else if (event.name === "down") {
+    } else if (event.name === "down" || event.name === "j") {
       setSelectedIndex((i) => Math.min(items.length - 1, i + 1));
     } else if (event.name === "return") {
       items[selectedIndex].toggle();

@@ -79,17 +79,18 @@ export function ItemCard({ api, itemId }: ItemCardProps) {
   const progressRef = useRef(0);
 
   const actions = [
-    // Toggle: queued items show Archive, everything else shows Queue
-    item?.status === "queue"
-      ? { key: "a", label: "Archive", action: () => updateStatus("archive") }
-      : { key: "q", label: "Queue", action: () => updateStatus("queue") },
+    // e = archive (always available), s = save to queue (when not in queue)
+    ...(item?.status !== "queue"
+      ? [{ key: "s", label: "Save", action: () => updateStatus("queue") }]
+      : []),
+    { key: "e", label: "Archive", action: () => updateStatus("archive") },
     item?.is_favorite
       ? { key: "f", label: "Unfav", action: () => toggleFavorite() }
       : { key: "f", label: "Fav", action: () => toggleFavorite() },
     ...(annotations.length > 0
       ? [{ key: "n", label: notebookOpen ? "Close" : `Notebook (${annotations.length})`, action: () => setNotebookOpen((v) => !v) }]
       : []),
-    ...(item?.markdown ? [{ key: "o", label: "Open", action: () => openInApp() }] : []),
+    ...(item?.markdown ? [{ key: "w", label: "Web", action: () => openInApp() }] : []),
     ...(item?.url ? [{ key: "b", label: "Browser", action: () => openInBrowser() }] : []),
   ];
 

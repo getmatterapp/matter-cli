@@ -7,9 +7,10 @@ interface ItemListProps {
   api: MatterAPI;
   status?: string;
   onSelect: (id: string) => void;
+  onItemUpdated?: () => void;
 }
 
-export function ItemList({ api, status, onSelect }: ItemListProps) {
+export function ItemList({ api, status, onSelect, onItemUpdated }: ItemListProps) {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,22 +49,52 @@ export function ItemList({ api, status, onSelect }: ItemListProps) {
     fetchItems();
   }, [fetchItems]);
 
+  async function updateItem(index: number, data: { status?: "queue" | "archive"; is_favorite?: boolean }) {
+    const item = items[index];
+    if (!item) return;
+    try {
+      const updated = await api.updateItem(item.id, data);
+      setItems((prev) => prev.map((it, i) => (i === index ? updated : it)));
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
+
   useKeyboard((event) => {
-    if (event.name === "up") {
-      setSelectedIndex((i) => Math.max(0, i - 1));
-    } else if (event.name === "down") {
+    const down = () => {
       setSelectedIndex((i) => {
         const next = Math.min(items.length - 1, i + 1);
-        // Load more when near the end
         if (next >= items.length - 3 && hasMore && !loading) {
           fetchItems(cursor);
         }
         return next;
       });
-    } else if (event.name === "return") {
-      if (items[selectedIndex]) {
-        onSelect(items[selectedIndex].id);
+    };
+    const up = () => setSelectedIndex((i) => Math.max(0, i - 1));
+
+    switch (event.name) {
+      case "up":
+      case "k":
+        up();
+        break;
+      case "down":
+      case "j":
+        down();
+        break;
+      case "return":
+        if (items[selectedIndex]) onSelect(items[selectedIndex].id);
+        break;
+      case "e":
+        updateItem(selectedIndex, { status: "archive" });
+        break;
+      case "s": {
+        const item = items[selectedIndex];
+        if (item && item.status !== "queue") updateItem(selectedIndex, { status: "queue" });
+        break;
       }
+      case "f":
+        if (items[selectedIndex]) updateItem(selectedIndex, { is_favorite: !items[selectedIndex].is_favorite });
+        break;
     }
   });
 

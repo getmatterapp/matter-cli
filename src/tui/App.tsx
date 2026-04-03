@@ -8,7 +8,7 @@ import { useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/react"
 import { MatterAPI } from "../api.js";
 import { loadConfig } from "../config.js";
 import { VERSION } from "../version.js";
-import { theme } from "./theme.js";
+import { theme, getColorMode, setColorMode, applyColorMode, type ColorMode } from "./theme.js";
 import { CommandPalette } from "./CommandPalette.js";
 import { ItemList } from "./ItemList.js";
 import { ItemCard } from "./ItemCard.js";
@@ -52,11 +52,21 @@ function App() {
     });
   }, [renderer]);
 
+  const cycleColorMode = useCallback(() => {
+    const modes: ColorMode[] = ["system", "dark", "light"];
+    const current = getColorMode();
+    const next = modes[(modes.indexOf(current) + 1) % modes.length];
+    setColorMode(next);
+    applyColorMode(next);
+  }, []);
+
   useKeyboard((event) => {
     if (event.name === "q" && view.name === "palette") {
       renderer.destroy();
     } else if (event.name === "escape") {
       goBack();
+    } else if (event.name === "d") {
+      cycleColorMode();
     }
   });
 
@@ -70,7 +80,7 @@ function App() {
       <text fg={theme.accent}> matter v{VERSION} </text>
       <box flexGrow={1} />
       <text fg={theme.fg.dim}>
-        {view.name === "palette" ? "q:quit" : "esc:back"} | /:search | enter:select
+        {view.name === "palette" ? "q:quit" : "esc:back"} | j/k:nav | d:theme | enter:select
       </text>
     </box>
   );
