@@ -14,12 +14,14 @@ import { ItemList } from "./ItemList.js";
 import { ItemCard } from "./ItemCard.js";
 import { ResultsView } from "./ResultsView.js";
 import { Settings } from "./Settings.js";
+import { SearchView } from "./SearchView.js";
 
 type View =
   | { name: "palette" }
   | { name: "items"; status?: string }
   | { name: "item"; id: string }
   | { name: "results"; title: string; data: unknown }
+  | { name: "search" }
   | { name: "settings" };
 
 function App() {
@@ -61,13 +63,17 @@ function App() {
     setColorModeState(next);
   }, [colorMode]);
 
+  const hasTextInput = view.name === "search";
+
   useKeyboard((event) => {
-    if (event.name === "q") {
+    if (event.name === "q" && !hasTextInput) {
       renderer.destroy();
-    } else if (event.name === "escape") {
+    } else if (event.name === "escape" && !hasTextInput) {
       goBack();
-    } else if (event.name === "d") {
+    } else if (event.name === "d" && !hasTextInput) {
       cycleColorMode();
+    } else if (event.raw === "/" && !hasTextInput) {
+      navigate({ name: "search" });
     }
   });
 
@@ -81,7 +87,7 @@ function App() {
       <text fg={theme.accent}> matter v{VERSION} </text>
       <box flexGrow={1} />
       <text fg={theme.fg.dim}>
-        q:quit{view.name !== "palette" ? " | esc:back" : ""} | j/k:nav | d:{colorMode} theme | enter:select
+        q:quit{view.name !== "palette" ? " | esc:back" : ""} | /:search | j/k:nav | d:{colorMode} theme | enter:select
       </text>
     </box>
   );
@@ -104,6 +110,9 @@ function App() {
                 break;
               case "items-all":
                 navigate({ name: "items" });
+                break;
+              case "search":
+                navigate({ name: "search" });
                 break;
               case "settings":
                 navigate({ name: "settings" });
@@ -132,6 +141,16 @@ function App() {
           api={api}
           itemId={view.id}
           onNavigate={(next) => navigate(next as View)}
+        />
+      );
+      break;
+
+    case "search":
+      content = (
+        <SearchView
+          api={api}
+          onSelect={(id) => navigate({ name: "item", id })}
+          onBack={goBack}
         />
       );
       break;

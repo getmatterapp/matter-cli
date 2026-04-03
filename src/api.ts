@@ -13,6 +13,7 @@ export interface RateLimit {
   read: number;
   write: number;
   save: number;
+  search: number;
   markdown: number;
   burst: number;
 }
@@ -25,7 +26,7 @@ export interface Item {
   site_name: string | null;
   author: Author | null;
   content_type: "article" | "podcast" | "video" | "pdf" | "tweet" | "newsletter";
-  status: "inbox" | "queue" | "archive";
+  status: "inbox" | "queue" | "archive" | null;
   processing_status: "processing" | "completed" | "failed";
   is_favorite: boolean;
   reading_progress: number;
@@ -85,6 +86,19 @@ export interface ItemFilters {
   updated_since?: string;
   limit?: number;
   cursor?: string;
+}
+
+export interface SearchFilters {
+  query: string;
+  type: string;
+  status?: "queue" | "archive";
+  limit?: number;
+  cursor?: string;
+}
+
+export interface SearchResults {
+  object: "search_results";
+  items?: PaginatedList<Item>;
 }
 
 export interface AnnotationFilters {
@@ -182,6 +196,14 @@ export class MatterAPI {
   }
 
   // --- Items ---
+
+  async search(filters: SearchFilters): Promise<SearchResults> {
+    const params: Record<string, string> = { query: filters.query, type: filters.type };
+    if (filters.status) params.status = filters.status;
+    if (filters.limit) params.limit = String(filters.limit);
+    if (filters.cursor) params.cursor = filters.cursor;
+    return this.request<SearchResults>("GET", "/search", { params });
+  }
 
   async listItems(filters?: ItemFilters): Promise<PaginatedList<Item>> {
     const params: Record<string, string> = {};
