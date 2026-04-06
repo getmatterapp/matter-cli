@@ -3,7 +3,7 @@
 
 import { createRoot } from "@opentui/react";
 import { createCliRenderer } from "@opentui/core";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useKeyboard, useRenderer, useTerminalDimensions } from "@opentui/react";
 import { MatterAPI } from "../api.js";
 import { loadConfig } from "../config.js";
@@ -28,7 +28,7 @@ function App() {
   const renderer = useRenderer();
   const { width, height } = useTerminalDimensions();
   const config = loadConfig();
-  const api = new MatterAPI(config.access_token!);
+  const api = useMemo(() => new MatterAPI(config.access_token!), [config.access_token]);
 
   const [view, setView] = useState<View>({ name: "palette" });
   const [history, setHistory] = useState<View[]>([]);
