@@ -4,7 +4,7 @@ const LLMS_TXT_URL = "https://matter-d988c870.mintlify.app/llms.txt";
 
 const preamble = `# Matter CLI Documentation
 
-Matter is a read-it-later app. The CLI manages your reading library from the terminal.
+Matter is a read-later app. The CLI manages your reading library from the terminal.
 All commands output JSON by default. Add --plain for human-readable text.
 IDs are prefixed strings: itm_ (items), ann_ (annotations), tag_ (tags), aut_ (authors).
 API tokens start with mat_. Run 'matter login' to authenticate.
@@ -43,7 +43,9 @@ When a user asks...                         Use this command
 async function fetchLlmsTxt(): Promise<string> {
   const res = await fetch(LLMS_TXT_URL);
   if (!res.ok) {
-    throw new Error(`Failed to fetch docs from ${LLMS_TXT_URL}: HTTP ${res.status}`);
+    throw new Error(
+      `Failed to fetch docs from ${LLMS_TXT_URL}: HTTP ${res.status}`,
+    );
   }
   return res.text();
 }
