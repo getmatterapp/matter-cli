@@ -1,6 +1,8 @@
 // Matter API Client
 // Docs: https://matter-d988c870.mintlify.app/api-reference/introduction
 
+import { VERSION } from "./version";
+
 // --- Types ---
 
 export interface Author {
@@ -159,6 +161,8 @@ export class MatterAPI {
     const headers: Record<string, string> = {
       Authorization: `Bearer ${this.token}`,
       "Content-Type": "application/json",
+      "User-Agent": `matter-cli/${VERSION}`,
+      "X-Matter-Client": `cli/${VERSION}`,
     };
 
     const res = await fetch(url.toString(), {
