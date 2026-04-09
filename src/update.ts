@@ -5,7 +5,7 @@ import { join } from "path";
 import { pipeline } from "stream/promises";
 import { Readable } from "stream";
 import { VERSION } from "./version.js";
-import { loadConfig, saveConfig } from "./config.js";
+import { loadConfig, saveConfig, CONFIG_DIR } from "./config.js";
 
 const GITHUB_REPO = "getmatterapp/matter-cli";
 const FETCH_TIMEOUT_MS = 30_000;
@@ -165,26 +165,84 @@ export async function performUpdate(release: ReleaseInfo): Promise<void> {
   }
 }
 
-export async function backgroundUpdateCheck(): Promise<void> {
+const STAGING_PATH = join(CONFIG_DIR, "matter-staged");
+
+/** Download update binary to staging location. Runs in background, never throws. */
+export async function backgroundDownloadUpdate(): Promise<void> {
   try {
     const config = loadConfig();
-    const lastCheck = config.last_update_check;
 
-    if (lastCheck) {
-      const elapsed = Date.now() - new Date(lastCheck).getTime();
-      if (elapsed < 24 * 60 * 60 * 1000) return;
+    // Skip if we already have a pending update staged
+    if (config.pending_update && existsSync(config.pending_update.path)) {
+      return;
     }
 
     const latest = await checkForUpdate();
+    if (!latest) return;
 
-    // Save timestamp only after a successful check
-    config.last_update_check = new Date().toISOString();
+    // Download to staging
+    const res = await fetchWithTimeout(latest.downloadUrl);
+    if (!res.ok || !res.body) return;
+
+    const writeStream = createWriteStream(STAGING_PATH);
+    await pipeline(Readable.fromWeb(res.body as any), writeStream);
+    chmodSync(STAGING_PATH, 0o755);
+
+    await verifyChecksum(STAGING_PATH, latest);
+
+    // Save pending update to config
+    config.pending_update = {
+      version: latest.version,
+      path: STAGING_PATH,
+      downloaded_at: new Date().toISOString(),
+    };
+    saveConfig(config);
+  } catch {
+    // Clean up failed download
+    tryUnlink(STAGING_PATH);
+    // Silently ignore — never block main execution
+  }
+}
+
+/** Apply a previously staged update. Call early in startup, before command parsing. */
+export function applyPendingUpdate(): void {
+  try {
+    const config = loadConfig();
+    if (!config.pending_update) return;
+
+    const { version, path: stagedPath } = config.pending_update;
+
+    if (!existsSync(stagedPath)) {
+      // Staged binary missing — clear stale config
+      delete config.pending_update;
+      saveConfig(config);
+      return;
+    }
+
+    // Swap the running binary
+    const currentBinary = process.execPath;
+    const backupPath = `${currentBinary}.bak`;
+
+    renameSync(currentBinary, backupPath);
+    renameSync(stagedPath, currentBinary);
+    tryUnlink(backupPath);
+
+    // Clear pending state
+    delete config.pending_update;
     saveConfig(config);
 
-    if (latest) {
-      console.error(`A new version of matter is available (v${latest.version}). Run 'matter update' to upgrade.`);
-    }
+    console.error(`Updated matter to v${version}.`);
   } catch {
-    // Silently ignore — never block main execution
+    // Failed to apply — will retry next run. Don't block startup.
+  }
+}
+
+/** Remove staged binary and clear pending_update from config. */
+export function clearPendingUpdate(): void {
+  tryUnlink(STAGING_PATH);
+  const config = loadConfig();
+  if (config.pending_update) {
+    delete config.pending_update;
+    saveConfig(config);
   }
 }

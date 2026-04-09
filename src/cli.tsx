@@ -2,7 +2,7 @@
 import { Command } from "commander";
 import { VERSION } from "./version.js";
 import { loadConfig } from "./config.js";
-import { backgroundUpdateCheck } from "./update.js";
+import { applyPendingUpdate, backgroundDownloadUpdate } from "./update.js";
 import { loginCommand } from "./commands/login.js";
 import { accountCommand } from "./commands/account.js";
 import { itemsCommand } from "./commands/items.js";
@@ -39,6 +39,9 @@ program.addCommand(tuiCommand);
 program.addCommand(docsCommand);
 program.addCommand(updateCommand);
 
+// Apply any previously downloaded update before doing anything else
+applyPendingUpdate();
+
 const args = process.argv.slice(2);
 const hasSubcommand = args.length > 0 && !args[0].startsWith("-");
 const hasFlags = args.some((a) => a.startsWith("-"));
@@ -53,7 +56,7 @@ if (!hasSubcommand && !hasFlags && process.stdout.isTTY) {
     program.outputHelp();
   }
 } else {
-  // Kick off background update check (non-blocking)
-  backgroundUpdateCheck();
+  // Download any available update in the background (applied on next run)
+  backgroundDownloadUpdate();
   await program.parseAsync(process.argv);
 }

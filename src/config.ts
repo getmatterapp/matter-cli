@@ -2,16 +2,23 @@ import { homedir } from "os";
 import { join } from "path";
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 
+export interface PendingUpdate {
+  version: string;
+  path: string;
+  downloaded_at: string;
+}
+
 export interface Config {
   access_token?: string;
   auth_type?: "token";
   readonly: boolean;
   color_mode?: "dark" | "light" | "system";
   last_update_check?: string;
+  pending_update?: PendingUpdate;
   version?: string;
 }
 
-const CONFIG_DIR = join(homedir(), ".config", "matter");
+export const CONFIG_DIR = join(homedir(), ".config", "matter");
 const CONFIG_PATH = join(CONFIG_DIR, "config.json");
 
 const DEFAULT_CONFIG: Config = {

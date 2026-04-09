@@ -68,7 +68,7 @@ matter tags delete tag_n5j2x
 matter tags add --item itm_r9f3a --name "my tag"
 matter tags remove --item itm_r9f3a --tag tag_n5j2x
 
-# Self-update
+# Self-update (also happens automatically — see below)
 matter update
 matter version
 ```
@@ -98,6 +98,16 @@ matter items list --limit 10 --cursor <cursor>
 # Fetch all pages at once
 matter items list --all
 ```
+
+### Auto-update
+
+The CLI updates itself automatically. On each run, it checks for new releases in the background and downloads them to a staging area. The update is applied on the next invocation — zero wait time. You'll see a one-liner when it happens:
+
+```
+Updated matter to v0.2.0.
+```
+
+Run `matter update` to update immediately instead of waiting for the next run.
 
 ### Readonly Mode
 

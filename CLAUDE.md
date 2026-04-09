@@ -19,7 +19,7 @@ bun run build        # Cross-compile binaries for all platforms
 - **Config:** `src/config.ts` — `~/.config/matter/config.json` management
 - **Commands:** `src/commands/*.ts` — one file per resource (items, annotations, tags, account, login, tui, update)
 - **TUI:** `src/tui/*.tsx` — OpenTUI React components (command palette, item browser, item detail, settings)
-- **Self-update:** `src/update.ts` — GitHub Releases check + binary replace
+- **Self-update:** `src/update.ts` — background download to staging on each run, apply on next startup; `matter update` for immediate manual update
 
 ## Key Conventions
 

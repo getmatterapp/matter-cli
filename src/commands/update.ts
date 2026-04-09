@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import { VERSION } from "../version.js";
-import { checkForUpdate, performUpdate } from "../update.js";
+import { checkForUpdate, performUpdate, clearPendingUpdate } from "../update.js";
 
 export const updateCommand = new Command("update")
   .description("Update matter CLI to the latest version")
@@ -14,6 +14,7 @@ export const updateCommand = new Command("update")
 
       console.log(`Updating from ${VERSION} to ${latest.version}...`);
       await performUpdate(latest);
+      clearPendingUpdate();
       console.log(`Updated to ${latest.version}.`);
       if (latest.notes) {
         console.log(`\nWhat's new:\n${latest.notes}`);
