@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 $Repo = "getmatterapp/matter-cli"
-$InstallDir = "$env:USERPROFILE\.config\matter\bin"
+$InstallDir = "$env:USERPROFILE\.matter\bin"
 $BinaryName = "matter.exe"
 $Binary = "matter-windows-x64.exe"
 
@@ -27,13 +27,12 @@ Invoke-WebRequest -Uri $DownloadUrl -OutFile "$InstallDir\$BinaryName"
 
 Write-Host "Installed to $InstallDir\$BinaryName"
 
-# Check PATH
+# Add to PATH if needed
 $CurrentPath = [Environment]::GetEnvironmentVariable("Path", "User")
 if ($CurrentPath -notlike "*$InstallDir*") {
-    Write-Host ""
-    Write-Host "$InstallDir is not in your PATH."
-    Write-Host "Add it by running:"
-    Write-Host "  [Environment]::SetEnvironmentVariable('Path', '$InstallDir;' + [Environment]::GetEnvironmentVariable('Path', 'User'), 'User')"
+    [Environment]::SetEnvironmentVariable("Path", "$InstallDir;$CurrentPath", "User")
+    $env:Path = "$InstallDir;$env:Path"
+    Write-Host "Added $InstallDir to your PATH."
 }
 
 Write-Host ""

@@ -2,7 +2,7 @@
 set -e
 
 REPO="getmatterapp/matter-cli"
-INSTALL_DIR="$HOME/.config/matter/bin"
+INSTALL_DIR="$HOME/.matter/bin"
 BINARY_NAME="matter"
 
 # Detect OS
@@ -49,29 +49,45 @@ chmod +x "${INSTALL_DIR}/${BINARY_NAME}"
 
 echo "Installed to ${INSTALL_DIR}/${BINARY_NAME}"
 
-# Check PATH
+# Add to PATH if needed
 case ":$PATH:" in
-  *":${INSTALL_DIR}:"*) ;;
+  *":${INSTALL_DIR}:"*)
+    # Already on PATH
+    ;;
   *)
-    echo ""
-    echo "${INSTALL_DIR} is not in your PATH."
-
     SHELL_NAME=$(basename "$SHELL")
     case "$SHELL_NAME" in
-      bash) RC_FILE="$HOME/.bashrc" ;;
+      bash)
+        # Prefer .bashrc; fall back to .bash_profile on macOS where .bashrc isn't sourced by default
+        if [ -f "$HOME/.bashrc" ]; then
+          RC_FILE="$HOME/.bashrc"
+        else
+          RC_FILE="$HOME/.bash_profile"
+        fi
+        ;;
       zsh)  RC_FILE="$HOME/.zshrc" ;;
       fish) RC_FILE="$HOME/.config/fish/config.fish" ;;
       *)    RC_FILE="" ;;
     esac
 
     if [ -n "$RC_FILE" ]; then
-      echo "Add it by running:"
       if [ "$SHELL_NAME" = "fish" ]; then
-        echo "  echo 'fish_add_path ${INSTALL_DIR}' >> ${RC_FILE}"
+        LINE="fish_add_path ${INSTALL_DIR}"
       else
-        echo "  echo 'export PATH=\"${INSTALL_DIR}:\$PATH\"' >> ${RC_FILE}"
+        LINE="export PATH=\"${INSTALL_DIR}:\$PATH\""
+      fi
+
+      # Append only if not already present
+      if ! grep -qF "$INSTALL_DIR" "$RC_FILE" 2>/dev/null; then
+        echo "" >> "$RC_FILE"
+        echo "# Matter CLI" >> "$RC_FILE"
+        echo "$LINE" >> "$RC_FILE"
+        echo "Added ${INSTALL_DIR} to PATH in ${RC_FILE}"
+        echo "Run 'source ${RC_FILE}' or open a new terminal to use matter."
       fi
     else
+      echo ""
+      echo "${INSTALL_DIR} is not in your PATH."
       echo "Add ${INSTALL_DIR} to your PATH manually."
     fi
     ;;
