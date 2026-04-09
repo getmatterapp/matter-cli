@@ -19,7 +19,7 @@ irm https://cli.getmatter.com/install.ps1 | iex
 **From source:**
 
 ```sh
-git clone https://github.com/hclarke/matter-cli.git
+git clone https://github.com/getmatterapp/matter-cli.git
 cd matter-cli
 bun install
 bun run src/cli.tsx --help
