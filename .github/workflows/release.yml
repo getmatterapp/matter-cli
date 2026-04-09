@@ -14,19 +14,29 @@ jobs:
         include:
           - target: bun-darwin-arm64
             outfile: matter-darwin-arm64
+            os: darwin
+            cpu: arm64
           - target: bun-darwin-x64
             outfile: matter-darwin-x64
+            os: darwin
+            cpu: x64
           - target: bun-linux-arm64
             outfile: matter-linux-arm64
+            os: linux
+            cpu: arm64
           - target: bun-linux-x64
             outfile: matter-linux-x64
+            os: linux
+            cpu: x64
           - target: bun-windows-x64
             outfile: matter-windows-x64.exe
+            os: win32
+            cpu: x64
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
-      - run: bun install
+      - run: bun install --os=${{ matrix.os }} --cpu=${{ matrix.cpu }}
       - run: bun build --compile --target=${{ matrix.target }} ./src/cli.tsx --outfile ./dist/${{ matrix.outfile }} --minify
       - uses: actions/upload-artifact@v4
         with:
