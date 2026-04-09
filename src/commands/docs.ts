@@ -1,6 +1,6 @@
 import { Command } from "commander";
 
-const LLMS_TXT_URL = "https://matter-d988c870.mintlify.app/llms.txt";
+const LLMS_TXT_URL = "https://docs.getmatter.com/llms.txt";
 
 const preamble = `# Matter CLI Documentation
 

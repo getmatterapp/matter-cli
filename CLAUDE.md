@@ -48,8 +48,8 @@ fetch individual pages for deeper detail. `matter docs --offline` outputs just t
 
 Base URL: `https://api.getmatter.com/public/v1/`
 Auth: Bearer token in `Authorization` header.
-Full docs: https://matter-d988c870.mintlify.app/api-reference/introduction
-LLM-optimized docs: https://matter-d988c870.mintlify.app/llms-full.txt
+Full docs: https://docs.getmatter.com/api
+LLM-optimized docs: https://docs.getmatter.com/llms-full.txt
 
 ## TUI
 
