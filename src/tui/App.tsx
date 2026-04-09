@@ -15,6 +15,7 @@ import { ItemCard } from "./ItemCard.js";
 import { ResultsView } from "./ResultsView.js";
 import { Settings } from "./Settings.js";
 import { SearchView } from "./SearchView.js";
+import { MeView } from "./MeView.js";
 
 type View =
   | { name: "palette" }
@@ -22,6 +23,7 @@ type View =
   | { name: "item"; id: string }
   | { name: "results"; title: string; data: unknown }
   | { name: "search" }
+  | { name: "me" }
   | { name: "settings" };
 
 function App() {
@@ -114,6 +116,9 @@ function App() {
               case "search":
                 navigate({ name: "search" });
                 break;
+              case "me":
+                navigate({ name: "me" });
+                break;
               case "settings":
                 navigate({ name: "settings" });
                 break;
@@ -157,6 +162,10 @@ function App() {
 
     case "results":
       content = <ResultsView title={view.title} data={view.data} />;
+      break;
+
+    case "me":
+      content = <MeView api={api} />;
       break;
 
     case "settings":

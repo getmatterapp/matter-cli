@@ -10,6 +10,7 @@ import { annotationsCommand } from "./commands/annotations.js";
 import { tagsCommand } from "./commands/tags.js";
 import { updateCommand } from "./commands/update.js";
 import { searchCommand } from "./commands/search.js";
+import { readingSessionsCommand } from "./commands/reading-sessions.js";
 import { docsCommand } from "./commands/docs.js";
 import { tuiCommand } from "./commands/tui.js";
 
@@ -34,6 +35,7 @@ program.addCommand(accountCommand);
 program.addCommand(itemsCommand);
 program.addCommand(annotationsCommand);
 program.addCommand(tagsCommand);
+program.addCommand(readingSessionsCommand);
 program.addCommand(searchCommand);
 program.addCommand(tuiCommand);
 program.addCommand(docsCommand);

@@ -61,6 +61,19 @@ export interface Tag {
   created_at: string;
 }
 
+export interface ReadingSession {
+  object: "reading_session";
+  id: string;
+  date: string;
+  seconds_read: number;
+}
+
+export interface ReadingSessionFilters {
+  since?: string;
+  limit?: number;
+  cursor?: string;
+}
+
 export interface Account {
   object: "account";
   id: string;
@@ -197,6 +210,16 @@ export class MatterAPI {
 
   async getAccount(): Promise<Account> {
     return this.request<Account>("GET", "/me");
+  }
+
+  // --- Reading Sessions ---
+
+  async listReadingSessions(filters?: ReadingSessionFilters): Promise<PaginatedList<ReadingSession>> {
+    const params: Record<string, string> = {};
+    if (filters?.since) params.since = filters.since;
+    if (filters?.limit) params.limit = String(filters.limit);
+    if (filters?.cursor) params.cursor = filters.cursor;
+    return this.request<PaginatedList<ReadingSession>>("GET", "/reading_sessions", { params });
   }
 
   // --- Items ---
