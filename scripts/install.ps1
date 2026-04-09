@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$Repo = "hclarke/matter-cli"
+$Repo = "getmatterapp/matter-cli"
 $InstallDir = "$env:USERPROFILE\.config\matter\bin"
 $BinaryName = "matter.exe"
 $Binary = "matter-windows-x64.exe"

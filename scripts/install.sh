@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-REPO="hclarke/matter-cli"
+REPO="getmatterapp/matter-cli"
 INSTALL_DIR="$HOME/.config/matter/bin"
 BINARY_NAME="matter"
 

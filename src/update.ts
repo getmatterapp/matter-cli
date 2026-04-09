@@ -1,5 +1,5 @@
-import { execSync } from "child_process";
-import { createWriteStream, chmodSync, renameSync, unlinkSync } from "fs";
+import { createWriteStream, chmodSync, renameSync, unlinkSync, readFileSync, existsSync } from "fs";
+import { createHash } from "crypto";
 import { tmpdir } from "os";
 import { join } from "path";
 import { pipeline } from "stream/promises";
@@ -7,12 +7,14 @@ import { Readable } from "stream";
 import { VERSION } from "./version.js";
 import { loadConfig, saveConfig } from "./config.js";
 
-const GITHUB_REPO = "hclarke/matter-cli";
+const GITHUB_REPO = "getmatterapp/matter-cli";
+const FETCH_TIMEOUT_MS = 30_000;
 
 interface ReleaseInfo {
   version: string;
   tag: string;
   downloadUrl: string;
+  checksumUrl: string | null;
   notes: string;
 }
 
@@ -28,8 +30,27 @@ function getPlatformBinary(): string {
   throw new Error(`Unsupported platform: ${platform}-${arch}`);
 }
 
+/** Compare semver strings. Returns -1 if a < b, 0 if equal, 1 if a > b. */
+function compareSemver(a: string, b: string): number {
+  const pa = a.split(".").map(Number);
+  const pb = b.split(".").map(Number);
+  for (let i = 0; i < 3; i++) {
+    const va = pa[i] || 0;
+    const vb = pb[i] || 0;
+    if (va < vb) return -1;
+    if (va > vb) return 1;
+  }
+  return 0;
+}
+
+function fetchWithTimeout(url: string, init?: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  return fetch(url, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 export async function checkForUpdate(): Promise<ReleaseInfo | null> {
-  const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
+  const res = await fetchWithTimeout(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
     headers: { Accept: "application/vnd.github.v3+json" },
   });
 
@@ -44,7 +65,7 @@ export async function checkForUpdate(): Promise<ReleaseInfo | null> {
   };
 
   const latestVersion = release.tag_name.replace(/^v/, "");
-  if (latestVersion === VERSION) {
+  if (compareSemver(latestVersion, VERSION) <= 0) {
     return null;
   }
 
@@ -54,45 +75,92 @@ export async function checkForUpdate(): Promise<ReleaseInfo | null> {
     throw new Error(`No binary found for this platform (${binaryName})`);
   }
 
+  const checksumAsset = release.assets.find((a) => a.name === "checksums.txt");
+
   return {
     version: latestVersion,
     tag: release.tag_name,
     downloadUrl: asset.browser_download_url,
+    checksumUrl: checksumAsset?.browser_download_url ?? null,
     notes: release.body || "",
   };
 }
 
+async function verifyChecksum(filePath: string, release: ReleaseInfo): Promise<void> {
+  if (!release.checksumUrl) return;
+
+  const res = await fetchWithTimeout(release.checksumUrl);
+  if (!res.ok) {
+    throw new Error(`Failed to download checksums: HTTP ${res.status}`);
+  }
+
+  const checksumText = await res.text();
+  const binaryName = getPlatformBinary();
+
+  // checksums.txt format: "<hash>  <path>/matter-*" — find line matching our binary
+  const line = checksumText.split("\n").find((l) => l.includes(binaryName));
+  if (!line) {
+    throw new Error(`No checksum found for ${binaryName}`);
+  }
+
+  const expectedHash = line.trim().split(/\s+/)[0];
+  const fileBuffer = readFileSync(filePath);
+  const actualHash = createHash("sha256").update(fileBuffer).digest("hex");
+
+  if (actualHash !== expectedHash) {
+    throw new Error(
+      `Checksum mismatch for ${binaryName}.\n  Expected: ${expectedHash}\n  Got:      ${actualHash}`,
+    );
+  }
+}
+
+function tryUnlink(path: string): void {
+  try {
+    if (existsSync(path)) unlinkSync(path);
+  } catch {
+    // Best effort
+  }
+}
+
 export async function performUpdate(release: ReleaseInfo): Promise<void> {
-  const res = await fetch(release.downloadUrl);
+  const res = await fetchWithTimeout(release.downloadUrl);
   if (!res.ok || !res.body) {
     throw new Error(`Failed to download update: HTTP ${res.status}`);
   }
 
   const tmpPath = join(tmpdir(), `matter-update-${Date.now()}`);
-  const writeStream = createWriteStream(tmpPath);
-  await pipeline(Readable.fromWeb(res.body as any), writeStream);
 
-  chmodSync(tmpPath, 0o755);
+  try {
+    const writeStream = createWriteStream(tmpPath);
+    await pipeline(Readable.fromWeb(res.body as any), writeStream);
+    chmodSync(tmpPath, 0o755);
 
-  // Find current binary path
-  const currentBinary = process.argv[0];
+    await verifyChecksum(tmpPath, release);
+  } catch (err) {
+    tryUnlink(tmpPath);
+    throw err;
+  }
+
+  // Replace the running binary
+  const currentBinary = process.execPath;
   const backupPath = `${currentBinary}.bak`;
 
   try {
     renameSync(currentBinary, backupPath);
     renameSync(tmpPath, currentBinary);
-    try {
-      unlinkSync(backupPath);
-    } catch {
-      // Best effort cleanup
-    }
+    tryUnlink(backupPath);
   } catch (err) {
-    // Try to restore backup
+    // Try to restore from backup
     try {
       renameSync(backupPath, currentBinary);
     } catch {
-      // Give up
+      console.error(
+        `CRITICAL: Failed to restore binary. Your backup is at ${backupPath}\n` +
+          `The downloaded update is at ${tmpPath}\n` +
+          `Manually move one of them to ${currentBinary} to recover.`,
+      );
     }
+    tryUnlink(tmpPath);
     throw new Error(`Failed to replace binary: ${(err as Error).message}`);
   }
 }
@@ -107,10 +175,12 @@ export async function backgroundUpdateCheck(): Promise<void> {
       if (elapsed < 24 * 60 * 60 * 1000) return;
     }
 
+    const latest = await checkForUpdate();
+
+    // Save timestamp only after a successful check
     config.last_update_check = new Date().toISOString();
     saveConfig(config);
 
-    const latest = await checkForUpdate();
     if (latest) {
       console.error(`A new version of matter is available (v${latest.version}). Run 'matter update' to upgrade.`);
     }
