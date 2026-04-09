@@ -3,7 +3,7 @@ import { Command } from "commander";
 import { VERSION } from "./version.js";
 import { loadConfig } from "./config.js";
 import { backgroundUpdateCheck } from "./update.js";
-import { loginCommand, loginWithTokenCommand } from "./commands/login.js";
+import { loginCommand } from "./commands/login.js";
 import { accountCommand } from "./commands/account.js";
 import { itemsCommand } from "./commands/items.js";
 import { annotationsCommand } from "./commands/annotations.js";
@@ -11,29 +11,31 @@ import { tagsCommand } from "./commands/tags.js";
 import { updateCommand } from "./commands/update.js";
 import { searchCommand } from "./commands/search.js";
 import { docsCommand } from "./commands/docs.js";
+import { tuiCommand } from "./commands/tui.js";
 
 const program = new Command()
   .name("matter")
   .description("CLI for the Matter reading app")
   .version(VERSION, "-v, --version")
   .addHelpText("after", `
-Common intents:
-  reading list / queue          items list --status queue --order library_position
-  inbox feed                    items list --status inbox --order inbox_position
-  read / summarize article      items get <id> --include markdown
-  find article about <topic>    search "<topic>" --type items
-  highlights from an article    annotations list --item <id> --all
-  all tags                      tags list
+Common workflows:
+  Browse your reading list      matter items list --status queue
+  Check your inbox              matter items list --status inbox
+  Read or summarize an article  matter items get <id> --include markdown
+  Find an article by topic      matter search "<topic>"
+  View highlights               matter annotations list --item <id> --all
+  List all tags                 matter tags list
+  Launch interactive TUI        matter tui
 
 Run 'matter docs' for full API reference.`);
 
 program.addCommand(loginCommand);
-program.addCommand(loginWithTokenCommand);
 program.addCommand(accountCommand);
 program.addCommand(itemsCommand);
 program.addCommand(annotationsCommand);
 program.addCommand(tagsCommand);
 program.addCommand(searchCommand);
+program.addCommand(tuiCommand);
 program.addCommand(docsCommand);
 program.addCommand(updateCommand);
 

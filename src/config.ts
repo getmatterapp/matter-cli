@@ -49,7 +49,7 @@ export function getToken(): string | undefined {
 export function requireToken(): string {
   const token = getToken();
   if (!token) {
-    console.error("Not logged in. Run `matter login` or `matter login-with-token` first.");
+    console.error("Not logged in. Run `matter login` first.");
     process.exit(1);
   }
   return token;

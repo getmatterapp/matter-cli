@@ -18,7 +18,7 @@ Sort values for 'matter items list --order':
   inbox_position   - Inbox feed order (pinned sources first, then by date). Use for inbox queries.
   updated          - Last-modified timestamp (any field change). Use for sync only.
 
-## Common Intents
+## Common Workflows
 
 When a user asks...                         Use this command
 "my reading list / queue"                   matter items list --status queue --order library_position

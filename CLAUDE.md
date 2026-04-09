@@ -17,7 +17,7 @@ bun run build        # Cross-compile binaries for all platforms
 - **API client:** `src/api.ts` — typed fetch-based client, all Matter API endpoints
 - **Auth:** `src/auth.ts` — token validation and storage
 - **Config:** `src/config.ts` — `~/.config/matter/config.json` management
-- **Commands:** `src/commands/*.ts` — one file per resource (items, annotations, tags, account, login, update)
+- **Commands:** `src/commands/*.ts` — one file per resource (items, annotations, tags, account, login, tui, update)
 - **TUI:** `src/tui/*.tsx` — OpenTUI React components (command palette, item browser, item detail, settings)
 - **Self-update:** `src/update.ts` — GitHub Releases check + binary replace
 

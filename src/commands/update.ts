@@ -8,13 +8,16 @@ export const updateCommand = new Command("update")
     try {
       const latest = await checkForUpdate();
       if (!latest) {
-        console.log(JSON.stringify({ ok: true, message: `Already on latest version (${VERSION}).` }));
+        console.log(`Already on the latest version (${VERSION}).`);
         return;
       }
 
-      console.error(`Updating from ${VERSION} to ${latest.version}...`);
+      console.log(`Updating from ${VERSION} to ${latest.version}...`);
       await performUpdate(latest);
-      console.log(JSON.stringify({ ok: true, message: `Updated to ${latest.version}.`, release_notes: latest.notes }));
+      console.log(`Updated to ${latest.version}.`);
+      if (latest.notes) {
+        console.log(`\nWhat's new:\n${latest.notes}`);
+      }
     } catch (err) {
       console.error(`Update failed: ${(err as Error).message}`);
       process.exit(1);

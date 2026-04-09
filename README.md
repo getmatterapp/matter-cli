@@ -31,11 +31,9 @@ bun run src/cli.tsx --help
 # Opens browser to copy API token
 matter login
 
-# Or paste token directly
-matter login-with-token
-
-# Piped input (for automation)
-echo "$MATTER_TOKEN" | matter login-with-token
+# Or pass token directly (for automation)
+matter login mat_yourtoken
+echo "$MATTER_TOKEN" | matter login
 ```
 
 ## Usage
@@ -77,10 +75,11 @@ matter version
 
 ### Interactive TUI
 
-Launch by running `matter` with no arguments in a terminal:
+Launch by running `matter` with no arguments, or explicitly with `matter tui`:
 
 ```sh
 matter
+matter tui
 ```
 
 Navigate with arrow keys, Enter to select, Escape/q to go back/quit, type to filter commands.
