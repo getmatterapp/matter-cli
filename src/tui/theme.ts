@@ -9,7 +9,7 @@ interface Theme {
   warning: string;
   error: string;
   highlight: { bg: string; fg: string };
-  bg: { bar: string; selected: string };
+  bg: { bar: string; selected: string; main: string };
   border: string;
   fg: {
     primary: string;
@@ -29,7 +29,7 @@ const dark: Theme = {
   warning: "#ffd93d",
   error: "#ff4444",
   highlight: { bg: "#6a6226", fg: "#fff" },
-  bg: { bar: "#1a1a2e", selected: "#2a2a4e" },
+  bg: { bar: "#1a1a2e", selected: "#2a2a4e", main: "#0f0f1e" },
   border: "#333",
   fg: {
     primary: "#fff",
@@ -49,7 +49,7 @@ const light: Theme = {
   warning: "#b8860b",
   error: "#cc2222",
   highlight: { bg: "#fff8c6", fg: "#111" },
-  bg: { bar: "#e8e8f0", selected: "#eeeef5" },
+  bg: { bar: "#e8e8f0", selected: "#eeeef5", main: "#ffffff" },
   border: "#ccc",
   fg: {
     primary: "#111",
