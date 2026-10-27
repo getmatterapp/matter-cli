@@ -1,0 +1,5 @@
+{
+  "setup": ["bun install --frozen-lockfile"],
+  "teardown": [],
+  "run": ["bun run dev"]
+}
