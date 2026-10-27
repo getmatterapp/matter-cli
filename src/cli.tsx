@@ -13,6 +13,7 @@ import { searchCommand } from "./commands/search.js";
 import { readingSessionsCommand } from "./commands/reading-sessions.js";
 import { docsCommand } from "./commands/docs.js";
 import { tuiCommand } from "./commands/tui.js";
+import { mcpCommand } from "./commands/mcp.js";
 
 const program = new Command()
   .name("matter")
@@ -27,6 +28,7 @@ Common workflows:
   View highlights               matter annotations list --item <id> --all
   List all tags                 matter tags list
   Launch interactive TUI        matter tui
+  Run as an MCP server          matter mcp
 
 Run 'matter docs' for full API reference.`);
 
@@ -38,13 +40,19 @@ program.addCommand(tagsCommand);
 program.addCommand(readingSessionsCommand);
 program.addCommand(searchCommand);
 program.addCommand(tuiCommand);
+program.addCommand(mcpCommand);
 program.addCommand(docsCommand);
 program.addCommand(updateCommand);
 
-// Apply any previously downloaded update before doing anything else
-applyPendingUpdate();
-
 const args = process.argv.slice(2);
+
+// MCP clients launch `matter mcp` as a long-lived server; it never stages or applies updates,
+// so a dedicated MCP binary can't replace itself with a release that lacks the command
+const isMcpServer = args[0] === "mcp";
+
+// Apply any previously downloaded update before doing anything else
+if (!isMcpServer) applyPendingUpdate();
+
 const hasSubcommand = args.length > 0 && !args[0].startsWith("-");
 const hasFlags = args.some((a) => a.startsWith("-"));
 
@@ -59,6 +67,6 @@ if (!hasSubcommand && !hasFlags && process.stdout.isTTY) {
   }
 } else {
   // Download any available update in the background (applied on next run)
-  backgroundDownloadUpdate();
+  if (!isMcpServer) backgroundDownloadUpdate();
   await program.parseAsync(process.argv);
 }

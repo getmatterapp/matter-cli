@@ -8,6 +8,7 @@ CLI and TUI for the Matter reading app (https://getmatter.com).
 bun install          # Install dependencies
 bun run dev          # Run CLI in dev mode (bun run src/cli.tsx)
 bun run typecheck    # Type-check with tsc --noEmit
+bun test             # Run unit tests
 bun run build        # Cross-compile binaries for all platforms
 ```
 
@@ -17,7 +18,8 @@ bun run build        # Cross-compile binaries for all platforms
 - **API client:** `src/api.ts` — typed fetch-based client, all Matter API endpoints
 - **Auth:** `src/auth.ts` — token validation and storage
 - **Config:** `src/config.ts` — `~/.config/matter/config.json` management
-- **Commands:** `src/commands/*.ts` — one file per resource (items, annotations, tags, account, login, tui, update)
+- **Commands:** `src/commands/*.ts` — one file per resource (items, annotations, tags, account, login, tui, mcp, update)
+- **MCP server:** `src/mcp.ts` — hand-rolled stdio JSON-RPC server exposing `MatterAPI` as MCP tools; tests in `test/` (`bun test`)
 - **TUI:** `src/tui/*.tsx` — OpenTUI React components (command palette, item browser, item detail, settings)
 - **Self-update:** `src/update.ts` — background download to staging on each run, apply on next startup; `matter update` for immediate manual update
 

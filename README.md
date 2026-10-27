@@ -84,6 +84,24 @@ matter tui
 
 Navigate with arrow keys, Enter to select, Escape/q to go back/quit, type to filter commands.
 
+### MCP Server
+
+`matter mcp` runs a [Model Context Protocol](https://modelcontextprotocol.io) server over stdio, so MCP clients such as Claude Code, Claude Desktop, and Cursor can call Matter as typed tools. It uses the token from `matter login`.
+
+```json
+{
+  "mcpServers": {
+    "matter": { "command": "matter", "args": ["mcp"] }
+  }
+}
+```
+
+With Claude Code: `claude mcp add matter -- matter mcp`.
+
+Tools cover the account, items, search, annotations, tags, and reading sessions. In readonly mode the server hides write tools and rejects calls to them.
+
+`matter mcp` never downloads or applies updates; other `matter` commands keep the binary current.
+
 ### Pagination
 
 List commands support cursor-based pagination:
@@ -146,6 +164,9 @@ Configuration is stored at `~/.config/matter/config.json`.
 ```sh
 # Type-check
 bun run typecheck
+
+# Run tests
+bun test
 
 # Build all platform binaries
 bun run build
