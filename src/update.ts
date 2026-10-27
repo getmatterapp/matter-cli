@@ -1,7 +1,7 @@
 import { createWriteStream, chmodSync, renameSync, unlinkSync, readFileSync, existsSync } from "fs";
 import { createHash } from "crypto";
 import { tmpdir } from "os";
-import { join } from "path";
+import { basename, join } from "path";
 import { pipeline } from "stream/promises";
 import { Readable } from "stream";
 import { VERSION } from "./version.js";
@@ -41,6 +41,11 @@ function compareSemver(a: string, b: string): number {
     if (va > vb) return 1;
   }
   return 0;
+}
+
+/** True when running from source under the bun runtime, where process.execPath is bun, not the matter binary. */
+export function isSourceRun(execPath: string = process.execPath): boolean {
+  return basename(execPath).replace(/\.exe$/i, "") === "bun";
 }
 
 function fetchWithTimeout(url: string, init?: RequestInit): Promise<Response> {
@@ -123,6 +128,10 @@ function tryUnlink(path: string): void {
 }
 
 export async function performUpdate(release: ReleaseInfo): Promise<void> {
+  if (isSourceRun()) {
+    throw new Error("Running from source; pull the repo instead of self-updating.");
+  }
+
   const res = await fetchWithTimeout(release.downloadUrl);
   if (!res.ok || !res.body) {
     throw new Error(`Failed to download update: HTTP ${res.status}`);
@@ -169,6 +178,9 @@ const STAGING_PATH = join(CONFIG_DIR, "matter-staged");
 
 /** Download update binary to staging location. Runs in background, never throws. */
 export async function backgroundDownloadUpdate(): Promise<void> {
+  // A source run must not stage updates; the installed binary handles its own
+  if (isSourceRun()) return;
+
   try {
     const config = loadConfig();
 
@@ -206,6 +218,9 @@ export async function backgroundDownloadUpdate(): Promise<void> {
 
 /** Apply a previously staged update. Call early in startup, before command parsing. */
 export function applyPendingUpdate(): void {
+  // Leave any staged update for the installed binary instead of replacing bun
+  if (isSourceRun()) return;
+
   try {
     const config = loadConfig();
     if (!config.pending_update) return;
